@@ -9,7 +9,7 @@ using namespace  cv;
 int main(int argc, char* argv[])
 {
 	const std::string input_image_name = "image.png";
-	const std::string result1_image_name = "second.png";
+	const std::string result1_image_name = "more_red_and_yellow.png";
 
 	const Mat original = imread(input_image_name, CV_LOAD_IMAGE_COLOR);
 
@@ -64,6 +64,8 @@ int main(int argc, char* argv[])
 
 	imshow(input_image_name, original);
 	imshow(result1_image_name, result1_image);
+
+	imwrite(result1_image_name, result1_image);
 
 	waitKey(0);
 	
