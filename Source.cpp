@@ -2,6 +2,7 @@
 #include <opencv2/highgui.hpp>
 #include <iostream>
 #include "orgb.hpp"
+#include <thread>
 
 using namespace  cv;
 
@@ -68,10 +69,11 @@ int main(int argc, char* argv[])
 	imwrite(result1_image_name, result1_image);
 
 	waitKey(0);
-	
+	using namespace std::chrono;
 
-
-
+	std::this_thread::sleep_for(3s);
+	int x;
+	std::cin >> x;
 
 
 
