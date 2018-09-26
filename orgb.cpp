@@ -112,13 +112,42 @@ namespace orgb {
 	cv::Mat lcc_from_orgb(const cv::Mat& orgb)
 	{
 		cv::Mat lcc; orgb.copyTo(lcc);
+		double mean = 0;
+		double min = 0, max = 0;
 		for (int col = 0; col < orgb.cols; ++col)
 		{
+			auto& L = lcc.at<double>(0, col);
+			mean += L;
+			if (L < min)
+				min = L;
+			if (L > max)
+				max = L;
+		}
+		mean /= orgb.cols;
+		
+		double betta = 2. / 3;
+
+		for (int col = 0; col < orgb.cols; ++col)
+		{
+			auto& L = lcc.at<double>(0, col);
+
+			if(L > mean && max > 1.)
+			{
+				L = mean + (1 - mean) * std::pow((L - mean) / (max - mean), betta);
+			}
+			else if(L <= mean && min < 1.)
+			{
+				L = mean - mean * std::pow((L - mean) / (min - mean), betta);
+			}
+			L = clamp(L, 0., 1.);
+
 			auto& cyb = lcc.at<double>(1, col);
 			auto& crg = lcc.at<double>(2, col);
 			const auto crg_cyb_pair = orgb::lcc_from_orgb(crg, cyb);
-			cyb = crg_cyb_pair.first;
-			crg = crg_cyb_pair.second;
+
+
+			cyb = clamp(crg_cyb_pair.first, -1., 1.);
+			crg = clamp(crg_cyb_pair.second, -1., 1.);
 		}
 		return lcc;
 	}
@@ -166,9 +195,13 @@ namespace orgb {
 			for (int col = 0; col < cols; ++col)
 			{
 				auto& pixel = rgb.at<cv::Vec3b>(row, col);
-				const double red = cv::pow(srgb.at<double>(0, row*cols + col), 2.2) * 255.0;
+				const double red = cv::pow(  srgb.at<double>(0, row*cols + col), 2.2) * 255.0;
 				const double green = cv::pow(srgb.at<double>(1, row*cols + col), 2.2) * 255.0;
-				const double blue = cv::pow(srgb.at<double>(2, row*cols + col), 2.2) * 255.0;
+				const double blue = cv::pow( srgb.at<double>(2, row*cols + col), 2.2) * 255.0;
+
+				//const double red = cv::pow(srgb.at<double>(0, row*cols + col), 2.2) * 255.0;
+				//const double green = cv::pow(srgb.at<double>(1, row*cols + col), 2.2) * 255.0;
+				//const double blue = cv::pow(srgb.at<double>(2, row*cols + col), 2.2) * 255.0;
 				pixel[0] = static_cast<uint8_t>(clamp(blue, 0., 255.));
 				pixel[1] = static_cast<uint8_t>(clamp(green, 0., 255.));
 				pixel[2] = static_cast<uint8_t>(clamp(red, 0., 255.));
@@ -177,20 +210,31 @@ namespace orgb {
 		return rgb;
 	}
 
-	void scale_Crg_by_alpha(cv::Mat& orgb_matrix, double alpha)
+	void scale_Crg_Colors(cv::Mat& image, double alpha)
 	{
-		for (int col = 0; col < orgb_matrix.cols; ++col)
+		for (int col = 0; col < image.cols; ++col)
 		{
-			auto& Crg = orgb_matrix.at<double>(2, col);
+			auto& Crg = image.at<double>(2, col);
 			Crg *= alpha;
 		}
 	}
-	void scale_Cyb_by_alpha(cv::Mat& orgb_matrix, double alpha)
+	void scale_Cyb_Colors(cv::Mat& image, double alpha)
 	{
-		for (int col = 0; col < orgb_matrix.cols; ++col)
+		for (int col = 0; col < image.cols; ++col)
 		{
-			auto& Cyb = orgb_matrix.at<double>(1, col);
+			auto& Cyb = image.at<double>(1, col);
 			Cyb *= alpha;
+		}
+	}
+
+	void scale_Crg_Cyb_Colors(cv::Mat& image, double red_green_scale, double yellow_blue_scale)
+	{
+		for (int col = 0; col < image.cols; ++col)
+		{
+			auto& Cyb = image.at<double>(1, col); 
+			auto& Crg = image.at<double>(2, col); 
+			Cyb *= yellow_blue_scale;
+			Crg *= red_green_scale;
 		}
 	}
 }

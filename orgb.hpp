@@ -30,6 +30,15 @@ namespace orgb {
 	cv::Mat linear_rgb_from_srgb(const cv::Mat& srgb, int rows, int cols);
 
 
-	void scale_Crg_by_alpha(cv::Mat& orgb_matrix, double alpha);
-	void scale_Cyb_by_alpha(cv::Mat& orgb_matrix, double alpha);
-}
+	/**
+	 * \brief scale both axes colors.(this does not change Luminance).
+	 * \param image matrix in orgb space to scale.
+	 * \param red_green_scale scale factor for red_green axes.
+	 * \param yellow_blue_scale scale factor for yellow_blue axes.
+	 */
+	void scale_Crg_Cyb_Colors(cv::Mat& image, double red_green_scale, double yellow_blue_scale);
+
+	void scale_Crg_Colors(cv::Mat& image, double scale);
+	void scale_Cyb_Colors(cv::Mat& image, double scale);
+
+} //orgb namespace
